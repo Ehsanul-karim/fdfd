@@ -1,0 +1,460 @@
+{% extends "user_base.html" %}
+{% load static %}
+{% block ProfilerType %}
+    {% if user.roles == 'Admin' %}
+    Admin
+    {% else %}
+    User
+    {% endif %}
+{% endblock %}
+    {% block Pagetitle %}Dashboard{% endblock %}
+
+    {% block item_3 %}active{% endblock %}
+
+    {% block sidebar_item2 %}
+        {% if user.roles == 'Admin' %}
+            New Arrest
+        {% else %}
+            New Charge-Sheet
+        {% endif %}
+    {% endblock %}
+
+    {% block sidebar_item3 %}
+    {% if user.roles == 'Admin' %}
+    Criminal Records
+    {% else %}
+    Details
+    {% endif %}
+    {% endblock %}
+    {% block sidebar_item4 %}
+    {% if user.roles == 'Admin' %}
+    Emergency
+    {% else %}
+    Emergency
+    {% endif %}
+    {% endblock %}
+    {% block UserDetails %}
+    {% if user.roles == 'Admin' %}
+    <i class="fa fa-user me-sm-1"></i>
+    <span class="d-sm-inline d-none">Admin</span>
+    {% else %}
+    <img src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}{% static 'img/Comoon_People.webp' %}{% endif %}" alt="" style="width: 50px; border-radius: 100%;">
+    <span class="d-sm-inline d-none">{{ user.name }}</span>
+    {% endif %}
+    {% endblock %}
+    {% block sidevar_1 %}
+        {% if user.roles == 'Admin' %}
+            {% url 'AdminHomePage' user.id %}
+        {% else %}
+            {% url 'UserHomePage' user.id %}
+        {% endif %}
+    {% endblock %}
+    {% block sidevar_2 %}
+        {% if user.roles == 'Admin' %}
+            {% url 'ArrestPage' user.id %}
+        {% else %}
+            {% url 'UseComplainPage1' user.id 0%}
+        {% endif %}
+    {% endblock %}
+    {% block sidevar_3 %}
+        {% if user.roles == 'Admin' %}
+            {% url 'CriminalPage' user.id %}
+        {% else %}
+    {% endif %}
+    {% endblock %}
+    {% block sidevar_4 %}
+        {% if user.roles == 'Admin' %}
+            {% url 'emergency' user.id %}
+        {% endif %}
+    {% endblock %}
+
+    {% block head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  {% endblock %}
+
+
+    {% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>FIR INFO</h6>
+                    </div>
+                    <div id="uploadForm">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h1>Victim's Info</h1>
+                                    <div class="row" style="margin: auto;"  id="User_box">
+                                            <label for="User" class="form-label">FIR ID</label>
+                                            <input style="background: #f0f0f2;" type="text" class="form-control" name="User" id="User" autocomplete="off" value="{{ case_info.id }}" disabled>
+                                    </div>
+                                    <div class="row" style="margin: auto;"  id="Victim_box">
+                                            <label for="VICTIMID" class="form-label">Victim ID</label>
+                                            <input style="background: #f0f0f2;" type="text" class="form-control" name="VICTIMID" id="VICTIMID" autocomplete="off" value="{{ victim_infos.id }}">
+                                    </div>                                                
+                                </div>
+                                <div class="col-md-8" style="text-align: center;">
+                                        <div id="imageContainer" style="cursor: pointer; text-align: center;">
+                                            {% if victim_infos.profile_image %}
+                                                <img width="100px" src="{{ victim_infos.profile_image.url }}" id="imgview5" style="border: 1px dotted #1c2247; margin-right: 150px;" />
+                                            {% else %}
+                                                <img width="100px" src="{% static 'images/logo/—Pngtree—vector add icon_4232053.png' %}" id="imgview5" style="border: 1px dotted #1c2247; margin-right: 150px;" />
+                                            {% endif %}
+                                            <!-- <img width="100px" src="{% static 'images/logo/—Pngtree—vector add icon_4232053.png' %}" id="imgview5" style="border: 1px dotted #1c2247; margin-right: 150px;" /> -->
+                                            <input class="form-control" type="file" name="victimImage" id="FileUpload10" onchange="readURL(this, 'imgview5');" style="display: none;">
+                                            <br>
+                                            <label for="FileUpload1" class="form-label" style="margin-right: 150px;">Photo of victim</label>
+                                        </div>
+                                </div>
+                            </div>
+                    
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3" id="victim_name">
+                                        <label for="victimName" class="form-label" style="width: 150px;">Victim's Name</label>
+                                        <input type="text" disabled class="form-control"  id="victimName" name="victimName" value="{{ victim_infos.name }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3" id="victim_fathername" >
+                                        <label for="fathername" class="form-label" style="width: 200px;">Father Name</label>
+                                        <input type="text" disabled class="form-control"  id="fathername" name="Fathername" value="{% if victim_infos.fathername %}{{ victim_infos.fathername }}{% else %} Not Given {% endif %}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3" id="victim_ssn" >
+                                        <label for="ssn" class="form-label">NID</label>
+                                        <input type="text" disabled class="form-control" id="ssn" name="ssn" min="1" value="{{ victim_infos.nid }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3" id="victim_age"  >
+                                        <label for="age" class="form-label">Age</label>
+                                        <input type="text" disabled class="form-control" id="age" name="age" min="1" value="{{ victim_infos.age }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="victim_address">
+                                <div class="col-md-12">
+                                    <label for="permanent-address" class="form-label">Victim's Permanent Address</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label type="text" class="form-control" value="">{% if victim_infos.upazila %}{{ victim_infos.upazila }} {% endif %}{% if victim_infos.district %}{{ victim_infos.district }} {% endif %}{% if victim_infos.division %}{{ victim_infos.division }} {% endif %}</label>
+                                </div>
+                              </div>
+                              <div class="row" style="margin-top: 10px;">
+                                <div class="col-md-3">
+                                    <div class="mb-3" id="victim_mail">
+                                        <label for="email" class="form-label">Email ID</label>
+                                        <input type="email" disabled class="form-control" id="email" name="email" value="{{ victim_infos.email }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3" id="victim_phn">
+                                        <label for="mobile" class="form-label">Mobile No</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">+880</div>
+                                            <input type="text" disabled class="form-control" id="mobile" maxlength="10" name="mobile" value="{{ victim_infos.phone }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+                    </div>
+
+                    <!-- case description part -->
+                    <div>
+                          <div class="container">
+                              <div class="row">
+                                <h1>Crime Info</h1>
+                                  <div class="col-md-3">
+                                      <div class="mb-3">
+                                        <label for="crime_type" class="form-label">Crime Type</label>
+                                        <input type="text" disabled class="form-control" value="{{ case_info.crime_type.crime_name }}">
+                                      </div>
+                                  </div>
+                                  <div class="col-md-3">
+                                      <div class="mb-3">
+                                          <label for="date" class="form-label">Occurance date</label>
+                                          <input type="date" disabled class="form-control" name="date" id="date" value="{{ case_info.occurance_date|date:'Y-m-d' }}">
+                                      </div>
+                                  </div>
+                                  <div class="col-md-2">
+                                      <div class="mb-3">
+                                        <label for="time" class="form-label">Time of incident</label>
+                                        <input type="time" disabled class="form-control" value="{{ case_info.occurance_time|date:'H:i' }}" readonly>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row">
+                                <label for="map" class="form-label">Occurance Place</label>
+                                <div class="row mb-3" style="justify-content: center;">
+                                    <div class="card-body px-0 pt-0 pb-2 mb-2">
+                                      <div class="row" id="map-container" style="justify-content: center;">
+                                        <div id="map" style="height: 400px; width: 70%;"></div>
+                                      </div>
+                                      <div class="row">
+                                        <input type="text" class="form-control" placeholder="Latitude" aria-label="Latitude"
+                                            aria-describedby="Latitude" name="Latitude" id="Latitude" style="display: none;">
+                                        <input type="text" class="form-control" placeholder="Longitude" aria-label="Longitude"
+                                            aria-describedby="Longitude" name="Longitude" id="Longitude" style="display: none;">
+                                      </div>
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="row mb-3" style="justify-content: center;">
+                                    <div class="col-md-4">
+                                      <input type="text" disabled id="addresses" class="form-control" value="{% if case_info.occuranced_upazila %}{{ case_info.occuranced_upazila }} {% endif %}{% if case_info.occuranced_district %}{{ case_info.occuranced_district }} {% endif %}{% if case_info.occuranced_division %}{{ case_info.occuranced_division }} {% endif %}">
+                                    </div>
+                              </div>
+                              <div class="row">
+                                  <div class="col-md-5">
+                                      <div class="mb-3">
+                                          <label for="floatingTextarea2" class="form-label" style="margin-top: 10px;" >Brief the occurance</label>
+                                          <div class="form-floating">
+                                              <textarea disabled class="form-control" name="brief" id="floatingTextarea2" style="height: 80px;">{% if case_info.brief %} {{ case_info.brief }} {% endif %}</textarea>
+                                              <label for="floatingTextarea2">Details</label>
+                                            </div>
+                                      </div>
+                                  </div>
+                                  <div class="col-md-5">
+                                      <div class="mb-3">
+                                          <label for="floatingTextarea3" class="form-label" style="margin-top: 10px;" >Description of Stolen or Damaged Property (If applicable)</label>
+                                          <div class="form-floating">
+                                              <textarea disabled class="form-control" name="brief_metal" id="floatingTextarea3" style="height: 80px;">{% if case_info.brief_material %} {{ case_info.brief_material }} {% endif %}</textarea>
+                                              <label for="floatingTextarea2">Details</label>
+                                            </div>
+                                      </div>
+                                  </div>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suspect information -->
+                    <div>
+                        <div class="container">
+                            <div class="row" id="suspectCard">
+                                <div class="card criminal-section">
+                                    <div class="row">
+                                        <div class="col-md-12" style="text-align: center;">
+                                            <label style=" font-size: large;">Suspect no <span>1</span></label>
+                                            <button id="closeBTN" type="button" class="btn-close close-witness-btn" aria-label="Close"
+                                                style="float: inline-end;"></button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="susName1" class="form-label">Name of Offender (if known or heard)</label>
+                                                <input disabled type="text" class="form-control" id="susName1" name="susName1"
+                                                    placeholder="Suspect Name" value="{% if physical_structure_infos.name %}{{ physical_structure_infos.name }}{% else %} Not Given {% endif %}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <h5>Physical Description</h5>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-3">
+                                            <label for="susage1" class="form-label">Age</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.age }}" >
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="susweight1" class="form-label">Weight</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.weight }}">
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="susheight1" class="form-label">Height</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.height }}">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Gender</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.gender }}">
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Facial Hair</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.facialHair }}">
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Face Shape</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.faceShape }}" >
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Hair Length</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.hairLength }}" >
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Hair Style</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.hairStyle }}" >
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="mobile" class="form-label">Hair Color</label>
+                                            <input type="text" class="form-control" disabled value="{{ physical_structure_infos.hairColor }}" >
+                                        </div>
+                                    </div>
+                                    <!-- Example single danger button -->
+                                    <div class="row mt-3 mb-3">
+                                        <label for="customRange2" class="form-label">Skin Tone</label>
+                                        <input style="width: 200px; margin-left:15px" type="text" class="form-control" disabled value="{{ physical_structure_infos.skinTone }}" >
+                                    </div>
+                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="row" style="margin: 10px;">
+                                                <label for="customRange2" class="form-label">Distinguished Marks</label>
+                                                <input disabled type="text" class="form-control" value="{{ physical_structure_infos.dis_guis_mark }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <textarea class="form-control" name="detailsDisguis1" id="Description_distinguishing_marks1"
+                                                    placeholder="Description of the mark" rows="3" disabled value="" >{{ physical_structure_infos.dis_guis_mark_brief }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END -->
+                        <!-- next start the picture of the criminal -->
+                        {% if user.roles == 'Admin' %}
+                        <form method="post" action="{% url 'firinfo' case_info.id user.id %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% if case_info.case_status != 'Completed' %}
+                            <div class="row">
+                                <label style="margin-top: 10px; margin-left: 310px;" for="feedback_message">Feedback Message:</label>
+                                <div class="form-group d-flex justify-content-center">
+                                    <textarea style="width: 600px;" class="form-control" name="feedback_message" id="feedback_message" cols="30" rows="2"></textarea>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="row d-flex justify-content-center">
+                                {% if case_info.case_status == 'Pending' %}
+                                    <div class="col text-center " style="margin-top: 20px;">
+                                        <button type="submit" name="stat-btn" value="accept" class="btn btn-success m-auto">
+                                            Accept
+                                        </button>
+                                    </div>
+                                    <div class="col text-center" style="margin-top: 20px;">
+                                        <button type="submit" name="stat-btn" value="reject" class="btn btn-danger m-auto">
+                                            Reject
+                                        </button>
+                                    </div>
+                                {% elif case_info.case_status == 'On Going' %}
+                                    <div class="col text-center " style="margin-top: 20px;">
+                                        <button type="submit" name="stat-btn" value="complete" class="btn btn-info m-auto">
+                                            Complete
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </form>
+
+                                {% elif user.roles == 'User' and case_info.case_status == 'Accepted' %}
+                                    {% if potential_suspects %}
+                                        {% for obj in potential_suspects %}
+                                            {% for individual_obj in obj %}
+                                                <div class="col my-auto" style="margin: 2%;">
+                                                    <div class="card" style="width: 15rem;">
+                                                        <img class="card-img-top" src="{% if individual_obj.criminal_img.url %}{{ individual_obj.criminal_img.url }}{% else %}{% static 'img/criminal/frontside.jpg' %}{% endif %}" alt="Card image cap">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">{{ individual_obj.criminal_name }}</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <br>
+                                                            <a href="{% url 'fircomplete' case_info.id user.id individual_obj.id %}" class="btn btn-success" >Accept</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                                <br>
+                                        {% endfor %}
+                                        <p>Select an unknown criminal</p>
+                                        <a href="{% url 'fircomplete' case_info.id user.id %}" class="btn btn-success">Accept</a>
+                                    {% endif %}
+                                {% elif user.roles == 'User' and case_info.case_status == 'Rejected' or case_info.case_status == 'Completed' %}
+                                    <div class="row">
+                                        <label style="margin-top: 10px; margin-left: 310px;" for="feedback_message">Feedback Message:</label>
+                                        <div class="form-group d-flex justify-content-center">
+                                            <textarea disabled style="width: 600px;" class="form-control" name="feedback_message" id="feedback_message" cols="30" rows="2">{{ case_info.additional_info }}</textarea>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    {% if criminal_found %}
+                                    <div class="col my-auto">
+                                        <div class="card" style="width: 15rem;">
+                                            <img class="card-img-top" src="{% if criminal_found.criminal_related.criminal_img.url %}{{ criminal_found.criminal_related.criminal_img.url }}{% else %}{% static 'img/criminal/frontside.jpg' %}{% endif %}" alt="Card image cap">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ criminal_found.criminal_related.criminal_name }}</h5>
+                                            </div>
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item">{{ criminal_found.criminal_related.criminal_nid }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p>No criminal Attached</p>
+                                    {% endif %}
+                                {% endif %}
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block Scripts %}
+    <script>
+        var map = L.map('map').setView([23.8103, 90.4125], 8);
+    
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        window.onload = function() {
+            var placeName = document.getElementById('addresses').value;
+            console.log(placeName);
+            var geocodeUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + placeName;
+    
+            fetch(geocodeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        var result = data[0];
+                        var lat = parseFloat(result.lat);
+                        var lon = parseFloat(result.lon);
+                        console.log(lat,lon);
+                        map.setView([lat, lon], 13); // Center the map on the found coordinates
+                        L.marker([lat, lon]).addTo(map); // Add a marker at the found coordinates
+                    } else {
+                        console.error('Place not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching geocoding data:', error);
+                });
+           }
+    
+        // map.on('load', function () {
+
+        // });
+    </script>
+
+
+    <script>
+
+    </script>
+      
+    {% endblock %}
